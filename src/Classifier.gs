@@ -6,8 +6,9 @@
  * decide_() is where they become labels, so a threshold can be changed and
  * re-checked without calling the model again.
  *
- * The question split and the policy follow withoneai/jev-email-classifier
- * (src/jev.ts and src/sort.ts).
+ * The question split, the policy and the question wording follow
+ * withoneai/jev-email-classifier (src/jev.ts and src/sort.ts), MIT License;
+ * see THIRD_PARTY_NOTICES.md.
  */
 
 /** The no-match option. Without it, mail that fits nothing is forced into something. */
