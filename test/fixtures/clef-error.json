@@ -1,0 +1,6 @@
+{
+  "result": null,
+  "success": false,
+  "errors": [{ "code": 5006, "message": "Error: oneOf at '/questions/category' not met" }],
+  "messages": []
+}

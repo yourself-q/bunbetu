@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <style>
+    body { font-family: Arial, "Hiragino Sans", "Noto Sans JP", sans-serif; font-size: 14px; color: #202124; margin: 0; padding: 4px 8px; }
+    label { display: block; font-weight: bold; margin: 14px 0 4px; }
+    .hint { color: #5f6368; font-size: 12px; margin-top: 4px; }
+    select, input, textarea { width: 100%; box-sizing: border-box; font-size: 14px; padding: 6px; border: 1px solid #dadce0; border-radius: 4px; }
+    textarea { height: 64px; resize: vertical; }
+    .buttons { margin-top: 18px; display: flex; gap: 8px; justify-content: flex-end; }
+    button { font-size: 14px; padding: 8px 16px; border-radius: 4px; border: 1px solid #dadce0; background: #fff; cursor: pointer; }
+    button.primary { background: #1a73e8; border-color: #1a73e8; color: #fff; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    #status { white-space: pre-wrap; margin-top: 14px; padding: 10px; border-radius: 4px; display: none; }
+    #status.ok { display: block; background: #e6f4ea; color: #137333; }
+    #status.ng { display: block; background: #fce8e6; color: #c5221f; }
+    #status.busy { display: block; background: #f1f3f4; color: #3c4043; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+  <form id="form" autocomplete="off">
+    <label for="provider">AIサービス</label>
+    <select id="provider"></select>
+
+    <label for="apiKey" id="apiKeyLabel">APIキー</label>
+    <input id="apiKey" type="password" spellcheck="false">
+    <div class="hint" id="apiKeyHint"></div>
+
+    <div id="accountBox" class="hidden">
+      <label for="accountId">CloudflareのアカウントID</label>
+      <input id="accountId" type="password" spellcheck="false" maxlength="32">
+      <div class="hint" id="accountHint"></div>
+    </div>
+
+    <label for="aboutMe">あなたの仕事（任意）</label>
+    <textarea id="aboutMe" maxlength="500" placeholder="例: 営業部で法人顧客を担当。見積もりと契約の窓口。"></textarea>
+    <div class="hint">AIが「誰に宛てたメールか」を判断する手がかりになります。</div>
+
+    <div class="hint" style="margin-top:14px">
+      キーはあなたのGoogleアカウントの中（このスクリプト専用の保存場所）にだけ保存され、シートには書かれません。
+    </div>
+
+    <div class="buttons">
+      <button type="button" id="close">閉じる</button>
+      <button type="submit" id="save" class="primary">保存して接続テスト</button>
+    </div>
+  </form>
+  <div id="status"></div>
+
+  <script>
+    var state = null;
+
+    function el(id) { return document.getElementById(id); }
+
+    function isCloudflare(name) { return name === 'Clef' || name === 'Clef Flash'; }
+
+    function refresh() {
+      var name = el('provider').value;
+      var cf = isCloudflare(name);
+      el('accountBox').className = cf ? '' : 'hidden';
+      el('apiKeyLabel').textContent = cf ? 'CloudflareのAPIトークン' : 'JevのAPIキー';
+      var saved = cf ? state.hasCfToken : state.hasJevKey;
+      el('apiKeyHint').textContent = saved
+        ? '保存済みです。変えるときだけ入れてください。'
+        : (cf ? 'Workers AI の権限だけを付けたトークンを作って貼り付けてください。'
+              : 'TypeSafe のダッシュボードで作ったキーを貼り付けてください。');
+      el('accountHint').textContent = state.hasCfAccount
+        ? '保存済みです。変えるときだけ入れてください。'
+        : 'Cloudflare ダッシュボードに表示される32文字の英数字です。';
+    }
+
+    function show(kind, text) {
+      var s = el('status');
+      s.className = kind;
+      s.textContent = text;
+    }
+
+    function setBusy(busy) {
+      el('save').disabled = busy;
+      el('close').disabled = busy;
+    }
+
+    function loadState(first) {
+      google.script.run
+        .withSuccessHandler(function (s) {
+          state = s;
+          if (first) {
+            s.providers.forEach(function (name) {
+              var o = document.createElement('option');
+              o.value = name;
+              o.textContent = name;
+              el('provider').appendChild(o);
+            });
+            el('provider').value = s.provider;
+            el('aboutMe').value = s.aboutMe;
+          }
+          refresh();
+        })
+        .withFailureHandler(function (e) { show('ng', e && e.message ? e.message : String(e)); })
+        .getSetupState();
+    }
+
+    loadState(true);
+
+    el('provider').addEventListener('change', refresh);
+    el('close').addEventListener('click', function () { google.script.host.close(); });
+
+    el('form').addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      if (!state) return;
+      setBusy(true);
+      show('busy', '保存して、テスト用の例文でAIサービスにつないでいます…');
+      google.script.run
+        .withSuccessHandler(function (r) {
+          setBusy(false);
+          show(r.ok ? 'ok' : 'ng', r.message);
+          el('apiKey').value = '';
+          el('accountId').value = '';
+          if (r.ok) el('save').textContent = 'もう一度テスト';
+          loadState(false);
+        })
+        .withFailureHandler(function (e) {
+          setBusy(false);
+          show('ng', e && e.message ? e.message : String(e));
+        })
+        .saveSetup({
+          provider: el('provider').value,
+          apiKey: el('apiKey').value,
+          accountId: el('accountId').value,
+          aboutMe: el('aboutMe').value
+        });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "bunbetu",
+  "private": true,
+  "description": "Gmail auto-labeller on Google Apps Script, using Jev or Clef",
+  "scripts": {
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "result": {
+    "model": "clef",
+    "answers": {
+      "category": {
+        "type": "choice",
+        "choice": "メルマガ・お知らせ",
+        "probabilities": { "メルマガ・お知らせ": 0.97, "システム通知": 0.02, "その他": 0.01 },
+        "confidence": 0.96
+      },
+      "needs_reply": { "type": "noul", "noul": 0.02 },
+      "automated": { "type": "noul", "noul": 0.98 },
+      "urgency": {
+        "type": "score",
+        "score": 0.1,
+        "legend": { "0": "a", "1": "b", "2": "c", "3": "d" },
+        "probabilities": { "0": 0.9, "1": 0.1, "2": 0.0, "3": 0.0 },
+        "confidence": 0.85
+      }
+    },
+    "usage": { "input_tokens": 540, "output_tokens": 36 }
+  },
+  "success": true,
+  "errors": [],
+  "messages": []
+}
