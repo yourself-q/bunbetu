@@ -1,6 +1,7 @@
 {
   "name": "bunbetu",
   "private": true,
+  "license": "MIT",
   "description": "Gmail auto-labeller on Google Apps Script, using Jev or Clef",
   "scripts": {
     "test": "node --test test/*.test.js"
